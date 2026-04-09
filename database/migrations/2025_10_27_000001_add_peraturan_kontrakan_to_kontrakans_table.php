@@ -9,11 +9,13 @@ return new class extends Migration
     /**
      * Run the migrations.
      */
-    public function up(): void
+    public function up()
     {
-        Schema::table('kontrakans', function (Blueprint $table) {
-            $table->text('peraturan_kontrakan')->after('fasilitas_umum')->nullable();
-        });
+            Schema::table('kontrakans', function (Blueprint $table) {
+        if (!Schema::hasColumn('kontrakans', 'peraturan_kontrakan')) {
+            $table->text('peraturan_kontrakan')->nullable()->after('fasilitas_umum');
+        }
+    });
     }
 
     /**
