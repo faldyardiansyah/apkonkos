@@ -10,7 +10,6 @@ env:
   IMAGE_NAME: ${{ github.repository }}
 
 jobs:
-  # ─── JOB 1: TESTING ───────────────────────────────────────
   test:
     name: Run Tests
     runs-on: ubuntu-latest
@@ -23,17 +22,13 @@ jobs:
         uses: shivammathur/setup-php@v2
         with:
           php-version: '8.2'
-          extensions: pdo, pdo_mysql, bcmath
+          extensions: pdo, pdo_sqlite, pdo_mysql, bcmath
 
       - name: Install Composer dependencies
         run: composer install --no-progress --prefer-dist
 
       - name: Copy .env
         run: cp .env.example .env
-      - name: Set testing database (SQLite)
-        run: |
-          sed -i 's/DB_CONNECTION=.*/DB_CONNECTION=sqlite/' .env
-          sed -i 's#DB_DATABASE=.*#DB_DATABASE=database/database.sqlite#' .env
 
       - name: Generate app key
         run: php artisan key:generate
@@ -41,13 +36,23 @@ jobs:
       - name: Setup SQLite
         run: touch database/database.sqlite
 
+      - name: Set SQLite config
+        run: |
+          echo "DB_CONNECTION=sqlite" >> .env
+          echo "DB_DATABASE=$(pwd)/database/database.sqlite" >> .env
+
+      - name: Samakan env testing
+        run: cp .env .env.testing
+
+      - name: Clear config
+        run: php artisan config:clear
+
       - name: Run Migration
         run: php artisan migrate
 
       - name: Run PHPUnit tests
         run: php artisan test
 
-  # ─── JOB 2: BUILD & PUSH IMAGE ────────────────────────────
   build-and-push:
     name: Build & Push Docker Image
     runs-on: ubuntu-latest
@@ -90,7 +95,6 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-  # ─── JOB 3: DEPLOY KE VPS ────────────────────────────────
   deploy:
     name: Deploy ke VPS
     runs-on: ubuntu-latest
@@ -109,23 +113,17 @@ jobs:
 
             echo "🚀 Mulai deployment..."
 
-            # Login ke GHCR
             echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
 
-            # Masuk ke folder project
             cd /home/${{ secrets.SERVER_USER }}/RPL2D-kelompok-8
 
-            # Pull image terbaru
             docker pull ghcr.io/${{ github.repository }}:latest
 
-            # Update container tanpa downtime besar
             docker compose up -d --remove-orphans
 
-            # Tunggu container siap
             echo "⏳ Menunggu container ready..."
             sleep 10
 
-            # Jalankan migrasi database
             docker compose exec -T app php artisan migrate --force --no-interaction
 
             echo "✅ Deployment selesai!"
