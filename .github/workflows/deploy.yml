@@ -47,8 +47,8 @@ jobs:
       - name: Clear config
         run: php artisan config:clear
 
-      - name: Run Migration
-        run: php artisan migrate
+      - name: Run Migration (fresh)
+        run: php artisan migrate:fresh --seed
 
       - name: Run PHPUnit tests
         run: php artisan test
