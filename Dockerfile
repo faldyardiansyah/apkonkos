@@ -35,6 +35,12 @@ WORKDIR /var/www/html
 # Copy file project
 COPY . .
 
+# install dependency frontend
+RUN npm install
+
+# build vite
+RUN npm run build
+
 # Install dependencies Laravel
 RUN composer install --optimize-autoloader --no-dev
 
