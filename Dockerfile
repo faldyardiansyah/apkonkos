@@ -1,4 +1,3 @@
-# Dockerfile
 FROM php:8.2-fpm-alpine
 
 # Install dependencies sistem
@@ -35,17 +34,18 @@ WORKDIR /var/www/html
 # Copy file project
 COPY . .
 
-# install dependency frontend
-RUN npm install
-
-# build vite
-RUN npm run build
+# Install dependency frontend & build vite
+# Tambahkan --frozen-lockfile atau --production jika ingin lebih cepat
+RUN npm install && npm run build
 
 # Install dependencies Laravel
 RUN composer install --optimize-autoloader --no-dev
 
-# Set permission
-RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
+# FIX PERMISSION: Berikan akses ke seluruh folder html ke www-data
+# Ini memastikan Nginx bisa membaca folder public/build
+RUN chown -R www-data:www-data /var/www/html \
+    && chmod -R 775 /var/www/html/storage \
+    && chmod -R 775 /var/www/html/bootstrap/cache
 
 # Copy konfigurasi Nginx dan Supervisor
 COPY docker/nginx.conf /etc/nginx/nginx.conf
