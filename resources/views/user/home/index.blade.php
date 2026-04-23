@@ -12,8 +12,7 @@
     <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <link rel="icon" href="{{ asset('image/appkonkos.png') }}">
-    <link rel="stylesheet" href="/build/assets/app-C-mBD5l1.css">
-    <script src="/build/assets/app-EgasIv5X.js"></script>
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 
 <body>
