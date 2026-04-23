@@ -108,39 +108,24 @@ jobs:
           port: 8022
           script: |
             set -e
-
             echo "🚀 Mulai deployment..."
-
-            # Login ke GitHub Container Registry
             echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
 
-            # Masuk ke direktori proyek
-            cd /home/${{ secrets.SERVER_USER }}/RPL2D-kelompok-8
+            cd /home/***/RPL2D-kelompok-8
 
-            # Tarik image terbaru
-            echo "📥 Menarik image terbaru..."
-            docker compose pull
-
-            # SOLUSI KONFLIK: Hentikan dan hapus container lama sebelum up
-            echo "🔄 Mereset container..."
+            # 1. Matikan dan bersihkan container lama (Kunci Utama)
             docker compose down
 
-            # Jalankan container baru
+            # 2. Tarik image terbaru
+            docker pull ghcr.io/faldyardiansyah/apkonkos:latest
+
+            # 3. Jalankan kembali
             docker compose up -d --remove-orphans
 
             echo "⏳ Menunggu container ready..."
-            sleep 10
+            sleep 15
 
-            # FIX PERMISSION & CACHE (Agar tidak Error 500)
-            echo "🛠️ Mengatur izin folder dan cache..."
-            docker compose exec -T app chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
-            docker compose exec -T app chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
-            docker compose exec -T app php artisan config:cache
-            docker compose exec -T app php artisan view:clear
-
-            # Jalankan migrasi database
-            echo "🗄️ Menjalankan migrasi..."
+            # 4. Jalankan migrasi
             docker compose exec -T app php artisan migrate --force --no-interaction
 
-            echo "✅ Deployment selesai dan CSS/JS harusnya sudah aman!"
-            
+            echo "✅ Deployment selesai!"
