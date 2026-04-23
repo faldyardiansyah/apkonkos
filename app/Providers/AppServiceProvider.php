@@ -19,6 +19,8 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+        if ($this->app->environment('testing')) {
+        Vite::useHotFile(storage_path('framework/testing.hot'));
+    }
     }
 }
